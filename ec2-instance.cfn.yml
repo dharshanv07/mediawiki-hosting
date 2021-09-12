@@ -1,0 +1,72 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS CloudFormation EC2 instances Template.
+Parameters:
+  AmiId:
+    Description: The distribution for the AMI to be used for the EC2 instances
+    Type: String
+    Default: 'ami-0b0af3577fe5e3532'
+  InstanceType:
+    Description: Ec2 Instance Type
+    Type: String
+    Default: t2.micro
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: 'ec2-keypair-automation'
+  VpcId:
+    Type: String
+    Description: Choose which VPC the security groups should be deployed to
+    Default: 'vpc-a790eada'
+  SubnetId:
+    Description: Subnet for the EC2 Instance
+    Type: String
+    Default: 'subnet-e5fecac4'
+Resources:
+  Ec2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref AmiId
+      KeyName: !Ref KeyName
+      SecurityGroupIds: 
+        - !Ref Ec2SecurityGroup
+      SubnetId: !Ref SubnetId
+      Tags:
+        - Key: Name
+          Value: 'MediaWiki'
+  
+  AttachingEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      InstanceId: !Ref Ec2Instance
+  
+  Ec2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: "EC2 SG For MediaWikiInstalation"
+      SecurityGroupEgress: 
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: "-1"
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: Name
+          Value: 'MediaWiki'      
+  
+  
+Outputs:
+  InstanceId:
+    Description: EC2 Instance ID
+    Value: !Ref Ec2Instance
+  EIP:
+    Description: MediaWiki Server IP address
+    Value: !Ref AttachingEIP
