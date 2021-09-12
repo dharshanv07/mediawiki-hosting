@@ -20,6 +20,7 @@
 
     - name: Ensure mariadb starts at reboot
       service: name=mariadb state=started enabled=yes
+    
     - name: install pip3
       yum: name=python3-pip state=present
 
@@ -57,7 +58,7 @@
         remote_src: true
 
     - name: move contents to webserver location
-      command: "mv /home/ec2-user/mediawiki-1.34.1 /var/www/mediawiki"
+      command: "cp -r /home/ec2-user/mediawiki-1.34.1 /var/www/mediawiki"
 
     - name: Change document root path
       lineinfile:
