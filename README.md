@@ -1,7 +1,10 @@
 # mediawiki-hosting
 This repo contains cloudformation and ansible scripts used for hosting mediawiki in aws
 The architecture for the application is as provided below
+
 ![mediawiki-thoughtworks](https://user-images.githubusercontent.com/28534583/134063573-0b780af9-8b15-4bc9-b983-c8ab2f887626.jpg)
+
+
 Media wiki server is hosted  in ec2 instances frontended with a load balancer. Maria DB is hosted on a seperate instance.
 
 **Infrastructure Creation**
