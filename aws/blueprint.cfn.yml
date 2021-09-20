@@ -1,0 +1,87 @@
+Description: >
+  This template will build the resources for Mediawiki instalation
+
+Parameters:
+  TemplateS3Region:
+    Type: String
+  TemplateS3Location:
+    Type: String
+  AmiId:
+    Type: AWS::EC2::Image::Id
+  InstanceType:
+    Type: String
+  EnvironmentName:
+    Type: String
+  VpcId:
+    Type: String
+  SubnetId:
+    Type: String
+  SubnetId1:
+    Type: String
+  SubnetId2:
+    Type: String
+  CertificateArn:
+    Type: String
+    
+Resources:
+  
+  MediaWikiServer1:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${TemplateS3Region}.amazonaws.com/${TemplateS3Location}/infrastructure/ec2-instance.cfn.yml
+      Parameters:
+        EnvironmentName:                        !Sub ${EnvironmentName}-app-1
+        KeyName:                                ec2-keypair-automation
+        VpcId:                                  !Ref VpcId
+        SubnetId:                               !Ref SubnetId
+        InstanceType:                           !Ref InstanceType
+        AmiId:                                  !Ref AmiId
+        SecurityGroup:                          !GetAtt SecurityGroup.Outputs.SecurityGroupId
+  
+  MediaWikiServer2:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${TemplateS3Region}.amazonaws.com/${TemplateS3Location}/infrastructure/ec2-instance.cfn.yml
+      Parameters:
+        EnvironmentName:                        !Sub ${EnvironmentName}-app-2
+        KeyName:                                ec2-keypair-automation
+        VpcId:                                  !Ref VpcId
+        SubnetId:                               !Ref SubnetId
+        InstanceType:                           !Ref InstanceType
+        AmiId:                                  !Ref AmiId
+        SecurityGroup:                          !GetAtt SecurityGroup.Outputs.SecurityGroupId
+  
+  MediaWikiDBServer:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${TemplateS3Region}.amazonaws.com/${TemplateS3Location}/infrastructure/ec2-instance.cfn.yml
+      Parameters:
+        EnvironmentName:                        !Sub ${EnvironmentName}-db-1
+        KeyName:                                ec2-keypair-automation
+        VpcId:                                  !Ref VpcId
+        SubnetId:                               !Ref SubnetId
+        InstanceType:                           !Ref InstanceType
+        AmiId:                                  !Ref AmiId
+        SecurityGroup:                          !GetAtt SecurityGroup.Outputs.SecurityGroupId
+
+  ALB:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${TemplateS3Region}.amazonaws.com/${TemplateS3Location}/infrastructure/application-load-balancer.cfn.yml
+      Parameters:
+        EnvironmentName:                        !Sub ${EnvironmentName}-app-1
+        VpcId:                                  !Ref VpcId
+        SubnetId1:                              !Ref SubnetId1
+        SubnetId2:                              !Ref SubnetId2
+        CertificateArn:                         !Ref CertificateArn
+        InstanceID1:                            !GetAtt MediaWikiServer1.Outputs.InstanceId
+        InstanceID2:                            !GetAtt MediaWikiServer2.Outputs.InstanceId
+        SecurityGroup:                          !GetAtt SecurityGroup.Outputs.SecurityGroupId
+  
+  SecurityGroup:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${TemplateS3Region}.amazonaws.com/${TemplateS3Location}/infrastructure/security-groups.cfn.yml
+      Parameters:
+        EnvironmentName:                        !Sub ${EnvironmentName}
+        VpcId:                                  !Ref VpcId

@@ -1,0 +1,51 @@
+Description: >
+  MediaWiki AWS Solution
+
+Parameters:
+  TemplateS3Location:
+    Type: String
+    Default: 'cfn-ndi-apidashboard'
+    Description: 'The location which stores the templates used in the CloudFormation blueprint'
+      
+  VpcId:
+    Type: String
+    Description: Choose which VPC the security groups should be deployed to
+    Default: 'vpc-a790eada'
+  
+  SubnetId:
+    Description: Subnet for the EC2 Instance
+    Type: String
+
+  CertificateArn:
+    Description: The HTTPS Cert ARN for the Application Load Balancer
+    Type: String
+
+  SubnetId1:
+    Description: Subnet for the EC2 Instance
+    Type: String
+    Default: 'subnet-e5fecac4'
+
+  SubnetId2:
+    Description: Subnet for the EC2 Instance
+    Type: String
+    Default: ''
+
+Resources:
+  blueprint:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+
+      # Implment Blueprint
+      TemplateURL: !Sub 'https://s3.amazonaws.com/${TemplateS3Location}/blueprint/blueprint.cfn.yml'
+
+      # Blueprint specific parameters
+      Parameters:
+        EnvironmentName:              !Ref AWS::StackName
+        TemplateS3Location:           !Ref TemplateS3Location
+        TemplateS3Region:             "s3"
+        VpcId:                        !Ref VpcId
+        SubnetId:                     !Ref SubnetId
+        CertificateArn:               !Ref CertificateArn
+        SubnetId1:                    !Ref SubnetId1
+        SubnetId2:                    !Ref SubnetId2
+        

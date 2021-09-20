@@ -1,0 +1,118 @@
+Description: >
+  This template deploys an Application Load Balancer that exposes our various ECS services.
+Parameters:
+  EnvironmentName:
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+  AlbType:
+    Description: Provide the Type of Application Load Balancer
+    Type: String
+    AllowedValues:
+      - internal
+      - internet-facing
+    Default: internet-facing
+  SecurityGroup:
+    Description: Select the Security Group to apply to the Application Load Balancer
+    Type: AWS::EC2::SecurityGroup::Id
+  CertificateArn:
+    Description: The HTTPS Cert ARN for the Application Load Balancer
+    Type: String
+  HealthCheckPath:
+    Description: Provide the Health Check path for the Load Balancer
+    Type: String
+    Default: /mediawiki
+  TargetType:
+    Description: Choose the type of Target
+    Type: String
+    AllowedValues:
+    - ip
+    - instance
+    Default: instance
+  TargetPort:
+    Description: Provide the Target Port
+    Type: Number
+    Default: 80
+  SubnetId1:
+    Description: Subnet for the EC2 Instance
+    Type: String
+    Default: ''
+  SubnetId2:
+    Description: Subnet for the EC2 Instance
+    Type: String
+    Default: ''
+  InstanceID1:
+    Description: Provide ec2 instance id
+    Type: String
+  
+  InstanceID2:
+    Description: Provide ec2 instance id
+    Type: String
+  
+  VpcId:
+    Type: String
+    Description: Choose which VPC the security groups should be deployed to
+    Default: ''
+
+  
+
+Resources:
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub ${EnvironmentName}-alb
+      Subnets: 
+          - !Ref SubnetId1
+          - !Ref SubnetId2
+      Scheme: !Ref AlbType
+      SecurityGroups: 
+        - !Ref SecurityGroup
+      Tags:
+        - Key: name
+          Value: !Ref EnvironmentName
+
+  LoadBalancerSecureListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: !Ref CertificateArn
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup1
+  
+  TargetGroup1:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${EnvironmentName}-alb-tg
+      VpcId: !Ref VpcId
+      Port: !Ref TargetPort
+      Protocol: HTTP
+      TargetType: !Ref TargetType
+      HealthCheckPath: !Ref HealthCheckPath
+      Targets:
+        - Id: !Ref InstanceID1
+        - Id: !Ref InstanceID2
+
+  
+Outputs:
+  LoadBalancer:
+    Description: A reference to the Application Load Balancer
+    Value: !Ref LoadBalancer
+
+  LoadBalancerUrl:
+    Description: The URL of the ALB
+    Value: !GetAtt LoadBalancer.DNSName
+
+  Listener:
+    Description: A reference to a port 443 listener
+    Value: !Ref LoadBalancerSecureListener
+
+  TargetGroup:
+    Description: A reference to the ALB Target Group
+    Value: !Ref TargetGroup1
+  
+  CanonicalHostedZoneID:
+    Description: A reference to Canonical Hosted Zone ID
+    Value: !GetAtt LoadBalancer.CanonicalHostedZoneID

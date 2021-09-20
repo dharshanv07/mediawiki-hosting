@@ -1,0 +1,60 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS CloudFormation EC2 instances Template.
+Parameters:
+  EnvironmentName:
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+  AmiId:
+    Description: The distribution for the AMI to be used for the EC2 instances
+    Type: AWS::EC2::Image::Id
+    Default: 'ami-0b0af3577fe5e3532'
+  InstanceType:
+    Description: Ec2 Instance Type
+    Type: String
+    Default: t2.micro
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: 'ec2-keypair-automation'
+  VpcId:
+    Type: String
+    Description: Choose which VPC the security groups should be deployed to
+    Default: 'vpc-a790eada'
+  SubnetId:
+    Description: Subnet for the EC2 Instance
+    Type: String
+    Default: 'subnet-e5fecac4'
+  
+  SecurityGroup:
+    Description: Select the Security Group to apply to the Application Load Balancer
+    Type: AWS::EC2::SecurityGroup::Id
+Resources:
+  Ec2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref AmiId
+      KeyName: !Ref KeyName
+      SecurityGroupIds: 
+        - !Ref SecurityGroup
+      SubnetId: !Ref SubnetId
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}
+  
+  AttachingEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      InstanceId: !Ref Ec2Instance
+  
+Outputs:
+  InstanceId:
+    Description: EC2 Instance ID
+    Value: !Ref Ec2Instance
+  EIP:
+    Description: MediaWiki Server IP address
+    Value: !Ref AttachingEIP
+  SecurityGroupId:
+    Description: Security Group ID
+    Value: !Ref Ec2SecurityGroup
