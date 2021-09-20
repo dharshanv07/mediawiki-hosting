@@ -1,0 +1,27 @@
+---
+- name: Instaling mariadb
+  yum:
+     name: ["mariadb-server","mariadb"]
+     state: present
+- name: Ensure mariadb starts at reboot
+  service: name=mariadb state=started enabled=yes
+- name: install pip3
+  yum: name=python3-pip state=present
+- name: Install mysql.
+  pip:
+    name: pymysql
+- name: mysql_root_password
+  mysql_user:
+     login_user: root
+     login_password: "{{ root_password }}"
+     user: root
+     check_implicit_admin: true
+     password: "{{ root_password }}"
+     host: "{{ mariadb_host}}"
+
+- name: Creating database
+  mysql_db: name=wiki_database state=present login_user=root login_password={{ root_password }}
+
+- name: Create db User
+  mysql_user: name=wiki password={{ mysql_wiki_password }} priv=wiki_database.*:ALL host={{ mariadb_host }} state=present login_user=root login_password={{ root_password }}
+    

@@ -1,0 +1,11 @@
+---
+# handlers file for media-wiki-server
+- name: Unzip Package
+  unarchive:
+    src: "/home/ec2-user/mediawiki-{{ mediawiki_version }}.1.tar.gz"
+    dest: "/home/ec2-user"
+    remote_src: true
+- name: move contents to webserver location
+  command: "cp -r /home/ec2-user/mediawiki-{{ mediawiki_version }}.1 /var/www/mediawiki"
+- name: restart httpd
+  service: name=httpd state=restarted

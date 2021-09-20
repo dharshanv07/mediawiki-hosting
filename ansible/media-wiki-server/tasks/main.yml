@@ -1,0 +1,56 @@
+---
+  - name: Update yum package
+    yum: name=* state=latest
+
+  - name: Instaling apache
+    yum:
+      name: ["httpd","php","php-mysqlnd","php-gd","php-xml","php-mbstring","php-json","wget"]
+      state: present
+
+  - name: Ensure apache starts at reboot
+    service: name=httpd state=started enabled=yes
+  
+  - name: Download mediawiki_package
+    get_url:
+      url: "https://releases.wikimedia.org/mediawiki/{{ mediawiki_version }}/mediawiki-{{ mediawiki_version }}.1.tar.gz"
+      dest: "/home/ec2-user"
+      force: yes
+    notify: 
+      - Unzip Package
+      - move contents to webserver location
+
+  - name: Change document root path
+    lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^DocumentRoot '
+      insertafter: '^#DocumentRoot '
+      line: DocumentRoot "/var/www"
+    notify:
+      - restart httpd
+
+  - name: change directory path
+    lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^<Directory "/var/www/html" '
+      insertafter: '^#<Directory '
+      line: <Directory "/var/www">
+    notify:
+      - restart httpd
+
+
+  - name: directory file setup
+    lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^DirectoryIndex index.html'
+      insertafter: '^#DirectoryIndex '
+      line: DirectoryIndex index.html index.html.var index.php
+    notify:
+      - restart httpd
+
+  - name: Recursively change ownership of a directory
+    file:
+      path: /var/www/mediawiki
+      state: directory
+      recurse: yes
+      owner: apache
+      group: apache

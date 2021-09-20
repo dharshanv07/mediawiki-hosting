@@ -1,0 +1,9 @@
+---
+ - hosts: web-server
+   become: true
+   roles:
+     - media-wiki-server
+ - hosts: db-server
+   become: true
+   roles:
+     - media-wiki-db

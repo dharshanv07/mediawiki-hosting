@@ -1,0 +1,6 @@
+---
+# vars file for media-wiki-db/
+mariadb_host: localhost
+root_password: 5g=T1A&dODC-2[ph
+mysql_wiki_password: qwert&123
+

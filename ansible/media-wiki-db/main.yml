@@ -1,0 +1,5 @@
+---
+ - hosts: db-server
+   become: true
+   roles:
+     - media-wiki-db
